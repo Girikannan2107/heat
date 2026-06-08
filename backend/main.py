@@ -19,10 +19,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Allow React frontend to communicate with this API
+# Connect the backend to the TanStack Start frontend (allowing CORS)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, restrict this to your frontend domain
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -6,9 +6,19 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "IDP Production Engine"
     API_V1_STR: str = "/api/v1"
     
+    # CORS Settings - Required for metal-flow-gui frontend communication
+    BACKEND_CORS_ORIGINS: list[str] = [
+        "http://localhost:5173",  # TanStack Start development
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",  # Legacy fallback
+        "http://127.0.0.1:3000",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+    ]
+    
     # Support multiple keys for fallback
     GEMINI_API_KEYS: str = os.getenv("GEMINI_API_KEYS", "")
-    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "") # Keep for backward compatibility
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "") 
     
     # Storage Settings
     UPLOAD_DIR: str = "uploads"
