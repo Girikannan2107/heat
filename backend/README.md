@@ -2,7 +2,7 @@
 title: Heat Treatment API
 emoji: 🔥
 colorFrom: red
-colorTo: orange
+colorTo: yellow
 sdk: docker
 pinned: false
 app_port: 7860
