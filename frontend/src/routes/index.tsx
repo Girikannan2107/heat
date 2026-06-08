@@ -48,6 +48,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { mapBackendResponseToUI } from "@/lib/api-adapter";
 import { JsonInspector } from "@/components/JsonInspector";
+import { IndustrialLoader } from "@/components/IndustrialLoader";
 
 // We only keep historicalLogs for the logs view. 
 // We import the mock data as fallbacks for the "Run sample" button.
@@ -126,6 +127,8 @@ function ForgeDashboard() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [drag, setDrag] = useState(false);
+  const [apiFinished, setApiFinished] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   const { theme, toggle } = useTheme();
 
   // Updated to handle actual File objects and API calls
@@ -133,27 +136,22 @@ function ForgeDashboard() {
     setUploadState("scanning");
     setProgress(15);
     setErrorMessage(null);
+    setApiFinished(false);
+    setApiError(null);
 
     if (fileInput === "sample") {
       setFileName("sample-cycle-04173.pdf");
-      // Simulate network delay for the sample
-      let p = 15;
-      const interval = setInterval(() => {
-        p += 15;
-        setProgress(p);
-        if (p >= 100) {
-          clearInterval(interval);
-          setParsedData({
-            metadata: mockMetadata,
-            processDetails: mockProcessDetails,
-            patterns: mockPatterns,
-            rows: mockRows,
-            verification: mockVerification,
-          });
-          setUploadState("done");
-          setTimeout(() => setView("viewer"), 450);
-        }
-      }, 200);
+      // Simulate network delay for the sample to finish midway through the animation
+      setTimeout(() => {
+        setParsedData({
+          metadata: mockMetadata,
+          processDetails: mockProcessDetails,
+          patterns: mockPatterns,
+          rows: mockRows,
+          verification: mockVerification,
+        });
+        setApiFinished(true);
+      }, 3500);
       return;
     }
 
@@ -186,21 +184,34 @@ function ForgeDashboard() {
       const adaptedData = mapBackendResponseToUI(data); 
       
       setParsedData(adaptedData);
-      
-      setProgress(100);
-      setUploadState("done");
-      setTimeout(() => setView("viewer"), 450);
+      setApiFinished(true);
 
     } catch (error) {
       console.error("API Upload Error:", error);
-      setErrorMessage(error instanceof Error ? error.message : String(error));
-      setUploadState("error");
-      setProgress(0);
+      const errStr = error instanceof Error ? error.message : String(error);
+      setApiError(errStr);
+      setApiFinished(true);
     }
   }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      {uploadState === "scanning" && (
+        <IndustrialLoader
+          fileName={fileName}
+          apiFinished={apiFinished}
+          errorOccurred={apiError}
+          onComplete={() => {
+            if (apiError) {
+              setUploadState("error");
+              setErrorMessage(apiError);
+            } else {
+              setUploadState("done");
+              setView("viewer");
+            }
+          }}
+        />
+      )}
       <div className="flex min-h-screen">
         <Sidebar view={view} setView={setView} uploadState={uploadState} />
         <main className="flex-1 min-w-0">
